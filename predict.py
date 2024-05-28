@@ -17,7 +17,7 @@ def predict_image(img_file):
     prediction = model.predict(img_array)
 
     # Interpret prediction
-    if prediction < 0.5:
+    if prediction > 0.5:
         return "Healthy Coral"
     else:
         return "Bleached Coral"
