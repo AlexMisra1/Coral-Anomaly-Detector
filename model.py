@@ -3,8 +3,10 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Input
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ReduceLROnPlateau
 import os
 import json
+import math
 
 # Define paths
 base_dir = 'dataset'
@@ -26,14 +28,16 @@ train_generator = train_datagen.flow_from_directory(
     train_dir,
     target_size=(150, 150),
     batch_size=32,
-    class_mode='binary'
+    class_mode='binary',
+    shuffle=True
 )
 
 validation_generator = validation_datagen.flow_from_directory(
     validation_dir,
     target_size=(150, 150),
     batch_size=32,
-    class_mode='binary'
+    class_mode='binary',
+    shuffle=False
 )
 
 # Define the CNN model
@@ -53,18 +57,49 @@ model = Sequential([
 
 # Compile the model
 model.compile(
-    optimizer=Adam(learning_rate=0.001),
+    optimizer=Adam(learning_rate=0.0001),
     loss='binary_crossentropy',
     metrics=['accuracy']
 )
 
+# Callback to reduce learning rate when a metric has stopped improving
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.00001)
+
+# Calculate steps_per_epoch and validation_steps
+steps_per_epoch = math.ceil(train_generator.samples / train_generator.batch_size)
+validation_steps = math.ceil(validation_generator.samples / validation_generator.batch_size)
+
+# Custom training loop to handle NoneType in val_logs
+class CustomCallback(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        if logs is not None:
+            print(f'Epoch {epoch+1} - Training Loss: {logs.get("loss")}, Training Accuracy: {logs.get("accuracy")}')
+            if "val_loss" in logs:
+                print(f'Validation Loss: {logs.get("val_loss")}, Validation Accuracy: {logs.get("val_accuracy")}')
+            else:
+                print("Validation metrics not available")
+
+# Ensure the datasets repeat indefinitely
+train_dataset = tf.data.Dataset.from_generator(
+    lambda: train_generator,
+    output_types=(tf.float32, tf.float32),
+    output_shapes=([None, 150, 150, 3], [None])
+).repeat()
+
+validation_dataset = tf.data.Dataset.from_generator(
+    lambda: validation_generator,
+    output_types=(tf.float32, tf.float32),
+    output_shapes=([None, 150, 150, 3], [None])
+).repeat()
+
 # Train the model
 history = model.fit(
-    train_generator,
-    steps_per_epoch=train_generator.samples // train_generator.batch_size,
+    train_dataset,
+    steps_per_epoch=steps_per_epoch,
     epochs=20,
-    validation_data=validation_generator,
-    validation_steps=validation_generator.samples // validation_generator.batch_size
+    validation_data=validation_dataset,
+    validation_steps=validation_steps,
+    callbacks=[reduce_lr, CustomCallback()]
 )
 
 # Save the model
@@ -75,7 +110,7 @@ with open('training_history.json', 'w') as f:
     json.dump(history.history, f)
 
 # Evaluate the model
-loss, accuracy = model.evaluate(validation_generator)
+loss, accuracy = model.evaluate(validation_dataset, steps=validation_steps)
 print(f'Validation accuracy: {accuracy * 100:.2f}%')
 
 if __name__ == "__main__":
