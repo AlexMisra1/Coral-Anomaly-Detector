@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Load ONNX model and run inference
                 try {
                     const session = new onnx.InferenceSession();
-                    await session.loadModel('docs/model/model.onnx');
+                    await session.loadModel('model/model.onnx');
                     const feeds = { input: inputTensor };
                     const results = await session.run(feeds);
                     const outputTensor = results.values().next().value;
