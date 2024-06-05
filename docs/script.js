@@ -18,12 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const imageData = reader.result;
 
                 // Preprocess the image data here (resize, normalize, etc.)
-                const inputTensor = preprocessImageData(imageData);
+                const inputTensor = await preprocessImageData(imageData);
 
                 // Load ONNX model and run inference
                 try {
-                    const session = new onnx.InferenceSession();
-                    await session.loadModel('model/model.onnx');
+                    const session = await ort.InferenceSession.create('model/model.onnx');
                     const feeds = { input: inputTensor };
                     const results = await session.run(feeds);
                     const outputTensor = results.values().next().value;
@@ -46,59 +45,26 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function preprocessImageData(imageData) {
-    // Preprocess the image data (e.g., resize, normalize)
-    // You can use TensorFlow.js or any other library for this step
-    // Example: convert imageData to a tensor and resize it to match the input size of the model
+    const img = new Image();
+    img.src = imageData;
+    await img.decode();
 
-    // Assuming imageData is already preprocessed as needed
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 150;
+    canvas.height = 150;
+    ctx.drawImage(img, 0, 0, 150, 150);
+    const imageDataArray = ctx.getImageData(0, 0, 150, 150).data;
 
-    // Load the ONNX model
-    const model = await loadONNXModel('model/model.onnx');
+    // Convert to a float32 array
+    const float32Array = new Float32Array(150 * 150 * 3);
+    for (let i = 0; i < 150 * 150; i++) {
+        for (let j = 0; j < 3; j++) {
+            float32Array[i * 3 + j] = imageDataArray[i * 4 + j] / 255;
+        }
+    }
 
-    // Convert the preprocessed image data to a tensor
-    const tensor = preprocessImageDataToTensor(imageData);
-
-    // Run inference using the ONNX model
-    const output = await model.predict(tensor);
-
-    // Postprocess the output (e.g., get predictions)
-    // Example: get the predicted class from the output tensor
-
-    // Assuming output is postprocessed as needed
-
-    return output;
-}
-
-async function loadONNXModel(modelPath) {
-    // Load the ONNX model
-    const model = await onnx.load(modelPath);
-
-    // Create a session from the model
-    const session = await model.createSession();
-
-    // Define a predict function using the session
-    const predict = async (inputData) => {
-        // Run inference using the session
-        const outputData = await session.run(inputData);
-
-        // Return the output data
-        return outputData;
-    };
-
-    // Return the predict function
-    return predict;
-}
-
-function preprocessImageDataToTensor(imageData) {
-    // Convert imageData to a tensor and preprocess as needed
-    // Example: convert imageData to a tensor using TensorFlow.js
-    // Ensure the tensor matches the input shape and data format expected by the model
-
-    // Assuming imageData is already converted to a tensor
-
+    // Create the ONNX Tensor
+    const tensor = new ort.Tensor('float32', float32Array, [1, 3, 150, 150]);
     return tensor;
 }
-
-
-
-
