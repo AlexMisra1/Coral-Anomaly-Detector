@@ -35,8 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const outputTensor = results[session.outputNames[0]]; // Access output tensor by name
                     console.log('Output tensor:', outputTensor);
 
+                    // Convert the raw output to a classification
+                    const probability = outputTensor.data[0];
+                    const classification = probability >= 0.5 ? 'healthy' : 'bleached';
+
                     // Display the result
-                    sessionStorage.setItem('prediction', `Output: ${outputTensor.data}`);
+                    sessionStorage.setItem('prediction', `Prediction: ${classification} (Probability: ${probability.toFixed(4)})`);
                     window.location.href = 'result.html';
                 } catch (err) {
                     errorDiv.textContent = 'Error running model: ' + err.message;
