@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     feeds[inputName] = inputTensor;
 
                     const results = await session.run(feeds);
-                    const outputTensor = results.values().next().value;
+                    console.log('Results:', results);
+                    const outputTensor = results[session.outputNames[0]]; // Access output tensor by name
                     console.log('Output tensor:', outputTensor);
 
                     // Display the result
