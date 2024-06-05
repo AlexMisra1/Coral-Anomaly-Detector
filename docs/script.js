@@ -19,22 +19,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Preprocess the image data here (resize, normalize, etc.)
                 const inputTensor = await preprocessImageData(imageData);
+                console.log('Input tensor:', inputTensor);
 
                 // Load ONNX model and run inference
                 try {
                     const session = await ort.InferenceSession.create('model/model.onnx');
                     const inputName = session.inputNames[0]; // Get the input name dynamically
+                    console.log('Input name:', inputName);
+
                     const feeds = {};
                     feeds[inputName] = inputTensor;
 
                     const results = await session.run(feeds);
                     const outputTensor = results.values().next().value;
+                    console.log('Output tensor:', outputTensor);
 
                     // Display the result
                     sessionStorage.setItem('prediction', `Output: ${outputTensor.data}`);
                     window.location.href = 'result.html';
                 } catch (err) {
                     errorDiv.textContent = 'Error running model: ' + err.message;
+                    console.error('Error running model:', err);
                 }
             };
             reader.readAsDataURL(file);
