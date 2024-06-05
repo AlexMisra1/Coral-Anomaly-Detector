@@ -23,7 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Load ONNX model and run inference
                 try {
                     const session = await ort.InferenceSession.create('model/model.onnx');
-                    const feeds = { input: inputTensor };
+                    const inputName = session.inputNames[0]; // Get the input name dynamically
+                    const feeds = {};
+                    feeds[inputName] = inputTensor;
+
                     const results = await session.run(feeds);
                     const outputTensor = results.values().next().value;
 
@@ -45,26 +48,34 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function preprocessImageData(imageData) {
-    const img = new Image();
-    img.src = imageData;
-    await img.decode();
-
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 150;
-    canvas.height = 150;
-    ctx.drawImage(img, 0, 0, 150, 150);
-    const imageDataArray = ctx.getImageData(0, 0, 150, 150).data;
+    const img = new Image();
 
-    // Convert to a float32 array
-    const float32Array = new Float32Array(150 * 150 * 3);
-    for (let i = 0; i < 150 * 150; i++) {
-        for (let j = 0; j < 3; j++) {
-            float32Array[i * 3 + j] = imageDataArray[i * 4 + j] / 255;
-        }
-    }
+    return new Promise((resolve, reject) => {
+        img.onload = () => {
+            canvas.width = 150;
+            canvas.height = 150;
+            ctx.drawImage(img, 0, 0, 150, 150);
+            const imageData = ctx.getImageData(0, 0, 150, 150);
 
-    // Create the ONNX Tensor
-    const tensor = new ort.Tensor('float32', float32Array, [1, 3, 150, 150]);
-    return tensor;
+            // Normalize pixel values to range [0, 1]
+            const input = new Float32Array(150 * 150 * 3);
+            for (let i = 0; i < 150 * 150; i++) {
+                input[i * 3] = imageData.data[i * 4] / 255;
+                input[i * 3 + 1] = imageData.data[i * 4 + 1] / 255;
+                input[i * 3 + 2] = imageData.data[i * 4 + 2] / 255;
+            }
+
+            // Convert to Tensor
+            const tensorInput = new ort.Tensor('float32', input, [1, 150, 150, 3]);
+            resolve(tensorInput);
+        };
+
+        img.onerror = (error) => {
+            reject(error);
+        };
+
+        img.src = imageData;
+    });
 }
