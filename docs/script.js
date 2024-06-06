@@ -17,34 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = async () => {
                 const imageData = reader.result;
 
-                // Preprocess the image data here (resize, normalize, etc.)
+                // Preprocess the image data
                 const inputTensor = await preprocessImageData(imageData);
-                console.log('Input tensor:', inputTensor);
 
-                // Load ONNX model and run inference
+                // Load TensorFlow.js model and run inference
                 try {
-                    const session = await ort.InferenceSession.create('model/model.onnx');
-                    const inputName = session.inputNames[0]; // Get the input name dynamically
-                    console.log('Input name:', inputName);
-
-                    const feeds = {};
-                    feeds[inputName] = inputTensor;
-
-                    const results = await session.run(feeds);
-                    console.log('Results:', results);
-                    const outputTensor = results[session.outputNames[0]]; // Access output tensor by name
-                    console.log('Output tensor:', outputTensor);
-
-                    // Convert the raw output to a classification
-                    const probability = outputTensor.data[0];
-                    const classification = probability >= 0.5 ? 'healthy' : 'bleached';
+                    const model = await tf.loadLayersModel('model/model.json');
+                    const predictions = model.predict(inputTensor);
+                    const output = predictions.dataSync()[0];
 
                     // Display the result
-                    sessionStorage.setItem('prediction', `Prediction: ${classification} (Probability: ${probability.toFixed(4)})`);
+                    const classification = output > 0.5 ? 'Healthy' : 'Bleached';
+                    sessionStorage.setItem('prediction', `Output: ${classification}`);
                     window.location.href = 'result.html';
                 } catch (err) {
                     errorDiv.textContent = 'Error running model: ' + err.message;
-                    console.error('Error running model:', err);
                 }
             };
             reader.readAsDataURL(file);
@@ -58,34 +45,24 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function preprocessImageData(imageData) {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-
     return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = imageData;
         img.onload = () => {
+            const canvas = document.createElement('canvas');
             canvas.width = 150;
             canvas.height = 150;
+            const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, 150, 150);
             const imageData = ctx.getImageData(0, 0, 150, 150);
 
-            // Normalize pixel values to range [0, 1]
-            const input = new Float32Array(150 * 150 * 3);
-            for (let i = 0; i < 150 * 150; i++) {
-                input[i * 3] = imageData.data[i * 4] / 255;
-                input[i * 3 + 1] = imageData.data[i * 4 + 1] / 255;
-                input[i * 3 + 2] = imageData.data[i * 4 + 2] / 255;
-            }
-
-            // Convert to Tensor
-            const tensorInput = new ort.Tensor('float32', input, [1, 150, 150, 3]);
-            resolve(tensorInput);
+            const data = tf.browser.fromPixels(imageData).div(255.0);
+            const resized = tf.image.resizeBilinear(data, [150, 150]);
+            const expanded = resized.expandDims(0);
+            resolve(expanded);
         };
-
-        img.onerror = (error) => {
-            reject(error);
+        img.onerror = (err) => {
+            reject(err);
         };
-
-        img.src = imageData;
     });
 }
