@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Display the result
                     const classification = output > 0.5 ? 'Healthy' : 'Bleached';
-                    sessionStorage.setItem('prediction', `Output: ${classification}`);
+                    const probability = output;
+                    sessionStorage.setItem('prediction', `Output: ${classification}, Probability Score: ${probability}`);
                     window.location.href = 'result.html';
                 } catch (err) {
                     errorDiv.textContent = 'Error running model: ' + err.message;
