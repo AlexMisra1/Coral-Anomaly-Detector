@@ -106,8 +106,9 @@ history = model.fit(
 model.save('coral_anomaly_detector.h5')
 
 # Save the training history to a JSON file
+history_dict = {k: [float(val) for val in v] for k, v in history.history.items()}
 with open('training_history.json', 'w') as f:
-    json.dump(history.history, f)
+    json.dump(history_dict, f)
 
 # Evaluate the model
 loss, accuracy = model.evaluate(validation_dataset, steps=validation_steps)
