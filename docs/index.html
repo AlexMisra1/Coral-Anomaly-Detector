@@ -1,17 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coral Anomaly Detection</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Coral Anomaly Detection</h1>
-    <form id="uploadForm">
-        <input type="file" id="imageInput" accept="image/*">
-        <input type="submit" value="Upload">
-    </form>
-    <div id="error" style="color: red;"></div>
-    <p>More information about this model: <a href="https://github.com/AlexMisra1/Coral-Anomaly-Detector" target="_blank">link</a></p>
+    <div class="container">
+        <h1>Coral Anomaly Detection</h1>
+        <p>
+            This Coral Anomaly Detector that I created uses advanced machine learning algorithms to analyze images of 
+            corals/coral reefs. By creating this tool to detect anomalies in coral formations, I wanted to help
+            researchers and conservationists monitor how bleached corals are in order to take action to protect 
+            vulnerable ecosystems. Simply press the "Choose File" button below and then press "Upload" to get 
+            started.
+        </p>
+        
+        <form id="uploadForm">
+            <input type="file" id="imageInput" accept="image/*">
+            <button type="submit">Upload</button>
+        </form>
+        
+        <div id="error"></div>
+        <p>More information about this model: 
+            <a href="https://github.com/AlexMisra1/Coral-Anomaly-Detector" target="_blank">link</a>
+        </p>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="script.js"></script>
 </body>

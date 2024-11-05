@@ -1,35 +1,118 @@
+/* Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Body Styling */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
-    background-color: #f0f0f0;
-}
-
-h1 {
+    min-height: 100vh;
+    background-color: #e9f5ff;
     color: #333;
+    margin: 0;
 }
 
+/* Container */
+.container {
+    width: 90%;
+    max-width: 500px;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Heading */
+h1 {
+    color: #003366;
+    font-size: 1.8em;
+    margin-bottom: 15px;
+}
+
+/* Paragraph */
+p {
+    font-size: 1em;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+/* Form Styling */
 form {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 10px;
 }
 
+/* Input Styling */
 input[type="file"] {
-    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 0.9em;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    background-color: #f9f9f9;
+    cursor: pointer;
 }
 
+/* Button Styling */
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    color: #ffffff;
+    background-color: #003366;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #004c99;
+}
+
+/* Error Message */
 #error {
+    color: #cc0000;
     margin-top: 10px;
-    color: red;
 }
 
-#prediction {
+/* Link Styling */
+a {
+    color: #003366;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.back-button {
+    display: inline-block;
     margin-top: 20px;
+    padding: 8px 16px;
+    font-size: 1em;
+    color: #ffffff;
+    background-color: #003366;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: #004c99;
+}
+
+/* Prediction Text */
+#prediction {
     font-size: 1.2em;
-    color: #555;
+    color: #444;
 }
